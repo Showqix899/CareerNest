@@ -1,0 +1,272 @@
+from django.shortcuts import render,redirect,get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.urls import reverse
+from django.db import transaction
+
+from core.decorator import admin_required
+from .models import CV,Skill,ProjectDescription,UserProfile,City
+from .forms import UserCVForms,UserProfileForm,ProjectDescriptionForm,SkillForm,CityForm
+
+
+
+
+
+# Create your views here.
+#user profile 
+def user_profile(request):
+    
+    profile_deatils = UserProfile.objects.filter(user=request.user)
+    projects = ProjectDescription.objects.filter(user=request.user)
+    cvs = CV.objects.filter(user=request.user)
+    
+    
+    context = {
+        "profile":profile_deatils,
+        "projects":projects,
+        "cvs":cvs
+    }    
+    return render(request,"user_profile/user_profile.html",{"context":context})
+
+
+#create city
+def create_city(request):
+    if request.method == "POST":
+        form = CityForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("create_city") # Redirect on success (PRG Pattern)
+    else:
+        form = CityForm()
+
+    # Fetch all existing cities to display in the list below the form
+    cities = City.objects.all()
+
+    context = {
+        "form": form,
+        "cities": cities
+    }
+    return render(request, "user_profile/city.html", context)
+    
+    
+#city instance delete #admin
+def delete_city(request, uuid):
+    if request.method == "POST":
+        try:
+            city = City.objects.get(id=uuid)
+            city.delete()
+        except City.DoesNotExist:
+            pass
+            
+    return redirect("create_city")
+
+
+
+# Create your views here. #admin 
+def create_skill(request):
+    try:
+        if request.method == "POST":
+            form = SkillForm(request.POST)
+            if form.is_valid():
+                form.save() 
+                return redirect("create_skill")
+        else:
+            form = SkillForm()
+
+        # Always fetch skills so they render correctly on both GET and POST
+        skills = Skill.objects.all()
+        
+        context = {
+            "form": form,
+            "skills": skills
+        }
+        return render(request, "user_profile/skill.html", context)
+
+    except ValidationError as e:
+        error_message = str(e)
+        skills = Skill.objects.all()
+        return render(request, "user_profile/skill.html", {"form": form, "skills": skills, "error_message": error_message})
+
+
+# skill instance delete #admin 
+def delete_skill(request, uuid):
+    if request.method == "POST":
+        try:
+            skill = Skill.objects.get(id=uuid)
+            skill.delete()
+        except Skill.DoesNotExist:
+            pass
+            
+    return redirect("create_skill")
+
+
+
+#user profile view 
+@login_required
+def user_profile_create(request):
+    # Get the existing profile or initialize an UNSAVED instance in memory
+    profile = UserProfile.objects.filter(user=request.user).first()
+    if not profile:
+        profile = UserProfile(user=request.user) # Does NOT write to DB yet!
+
+    try:
+        if request.method == "POST":
+            # Include request.FILES in case your profile has avatar/image uploads
+            profile_form = UserProfileForm(
+                request.POST,
+                request.FILES,
+                instance=profile
+            )
+        
+            if profile_form.is_valid():
+                with transaction.atomic():
+                    # form.save() automatically handles saving the instance and m2m fields
+                    profile_form.save()
+                
+                return redirect("user_profile")
+        else:
+            # Pre-fill the form with the existing profile data on GET requests
+            profile_form = UserProfileForm(instance=profile)
+
+        return render(request, "user_profile/user_profile_create.html", {"form": profile_form})  
+
+    except Exception as e:
+        return render(request, "user_profile/error.html", {"message": f"error saving profile details : {str(e)}"})
+
+
+#user profile update
+@login_required
+def user_profile_update(request):
+    
+    #get user profile 
+    profile = UserProfile.objects.filter(user=request.user).first()
+    
+    if not profile:
+        return render(request,"user_profile/error.html",{"message":"user not found"})
+    
+    if request.method == "POST":
+        
+        form = UserProfileForm(request.POST,instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect("user_profile")
+        
+    else:
+        
+        form = UserProfileForm(instance=profile)
+        return render(request,"user_profile/user_profile_create.html",{"form":form})
+
+
+#add projects 
+@login_required
+def add_projects(request):
+    if request.method == "POST":
+        form = ProjectDescriptionForm(request.POST)
+        
+        if form.is_valid():
+            try:
+                # 1. Create the instance in memory without saving to DB yet
+                project = form.save(commit=False)
+                
+                # 2. Attach the relation: 
+                # UNCOMMENT ONE OF THE TWO BELOW DEPENDING ON YOUR MODEL DEFINITION:
+                
+                # Option A: If ProjectDescription links directly to User
+                project.user = request.user 
+                
+                # Option B: If ProjectDescription links to UserProfile instead
+                # profile = UserProfile.objects.get(user=request.user)
+                # project.user_profile = profile # (Change 'user_profile' to match your model field name)
+                
+                # 3. Now save it to the database
+                project.save()
+                return redirect("user_profile")
+                
+            except Exception as e:
+                # This will show you the EXACT database/attribute error on the screen
+                return render(request, "user_profile/error.html", {"message": f"Error saving project: {str(e)}"})
+        else:
+            # If form is invalid, print/inspect errors or re-render form
+            print(form.errors) # Check your terminal for form errors!
+    else:
+        form = ProjectDescriptionForm()
+        
+    return render(request, "user_profile/add_project.html", {"form": form})
+
+
+#update projects
+@login_required
+def update_projects(request, uuid):
+    # Fetch a single instance belonging to the logged-in user (or return 404)
+    project = ProjectDescription.objects.get(id=uuid)
+
+    if request.method == "POST":
+        # Pass request.POST and the single instance
+        form = ProjectDescriptionForm(request.POST, instance=project)
+        
+        if form.is_valid():
+            form.save()
+            return redirect("user_profile")
+    else:
+        # Pre-fill the form with the existing project data on GET requests
+        form = ProjectDescriptionForm(instance=project)
+
+    # This handles both GET requests and invalid POST submissions (showing form errors)
+    return render(request, "user_profile/add_project.html", {"form": form})
+
+#project delete 
+@login_required
+def delete_project(request,uuid):
+    
+    project = ProjectDescription.objects.filter(id=uuid)
+        
+    if not project:
+        return render(request,"user_profile/error.html",{"message":f"project not found"})
+    
+    project.delete()
+    return redirect("user_profile")
+
+# User CV Upload
+@login_required
+def user_cv_add(request):
+    if request.method == "POST":
+        # Pass both request.POST and request.FILES for file uploads
+        form = UserCVForms(request.POST, request.FILES)
+        
+        if form.is_valid():
+            # 1. Create instance in memory without saving to DB yet
+            cv = form.save(commit=False)
+            
+            # 2. Attach the logged-in user (adjust to cv.user_profile if linked to profile instead)
+            cv.user = request.user 
+            
+            # 3. Save to database
+            cv.save()
+            return redirect("user_profile")
+    else:
+        form = UserCVForms()
+        
+    return render(request, "user_profile/add_cv.html", {"form": form})
+
+
+# User CV Delete
+@login_required
+def user_cv_delete(request, uuid):
+    cv = get_object_or_404(CV, id=uuid)
+    
+    # Ensure deletion only happens on POST requests for security
+    if request.method == "POST":
+        cv.delete()
+        
+    return redirect("user_profile")
+        
+        
+    
+    
+
+
+
+
+            
+    
+

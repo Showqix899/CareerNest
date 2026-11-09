@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}CareerNest | Create Account{% endblock %}
+
+{% block extra_css %}
+<style>
+    .register-section {
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        padding: 60px 0;
+    }
+
+    .register-card {
+        border-radius: 24px;
+        overflow: hidden;
+    }
+
+    .register-left {
+        background: linear-gradient(145deg, #388E3C, #81C784);
+        color: white;
+        padding: 55px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .register-left h2 {
+        font-size: 2.3rem;
+        font-weight: 800;
+    }
+
+    .register-left p {
+        color: rgba(255,255,255,.85);
+        line-height: 1.8;
+    }
+
+    .register-right {
+        padding: 50px 45px;
+    }
+
+    .register-icon {
+        width: 65px;
+        height: 65px;
+        background: rgba(255,255,255,.2);
+        border-radius: 18px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 30px;
+        margin-bottom: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-gray);
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .register-right input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #DDE5DE;
+        border-radius: 10px;
+        background: rgba(255,255,255,.8);
+        outline: none;
+        transition: .3s;
+    }
+
+    .register-right input:focus {
+        border-color: var(--dark-green);
+        box-shadow: 0 0 0 3px rgba(56,142,60,.12);
+    }
+
+    .register-right ul {
+        font-size: 12px;
+        color: var(--gray);
+        padding-left: 20px;
+        margin-top: 7px;
+    }
+
+    .register-right .errorlist {
+        color: #dc3545;
+        font-size: 13px;
+        padding-left: 18px;
+    }
+
+    .register-submit {
+        width: 100%;
+        padding: 13px;
+        font-weight: 600;
+        font-size: 16px;
+        margin-top: 15px;
+    }
+
+    .register-feature {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    .register-feature-icon {
+        width: 38px;
+        height: 38px;
+        background: rgba(255,255,255,.18);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media(max-width: 767px) {
+        .register-section {
+            padding: 30px 12px;
+        }
+
+        .register-left {
+            padding: 35px 25px;
+        }
+
+        .register-left h2 {
+            font-size: 1.8rem;
+        }
+
+        .register-right {
+            padding: 35px 25px;
+        }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<section class="register-section">
+    <div class="container">
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+
+                <div class="glass-card register-card">
+                    <div class="row g-0">
+
+                        <!-- LEFT SIDE -->
+                        <div class="col-md-5">
+                            <div class="register-left h-100">
+
+                                <div class="register-icon">
+                                    🚀
+                                </div>
+
+                                <h2>Start Your Career Journey.</h2>
+
+                                <p class="mt-3">
+                                    Create your account and discover
+                                    opportunities to grow your career.
+                                    Find jobs, develop new skills and
+                                    move closer to your dream job.
+                                </p>
+
+                                <div class="register-feature">
+                                    <div class="register-feature-icon">💼</div>
+                                    <div>
+                                        <strong>Discover Jobs</strong>
+                                        <small class="d-block text-white-50">
+                                            Find opportunities
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="register-feature">
+                                    <div class="register-feature-icon">📚</div>
+                                    <div>
+                                        <strong>Learn New Skills</strong>
+                                        <small class="d-block text-white-50">
+                                            Improve your expertise
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="register-feature">
+                                    <div class="register-feature-icon">🎯</div>
+                                    <div>
+                                        <strong>Reach Your Goals</strong>
+                                        <small class="d-block text-white-50">
+                                            Build your future
+                                        </small>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                        <!-- RIGHT SIDE -->
+                        <div class="col-md-7">
+                            <div class="register-right">
+
+                                <div class="mb-4">
+                                    <span class="text-primary-green fw-bold small">
+                                        JOIN CAREERPATH
+                                    </span>
+
+                                    <h2 class="fw-bold mt-2">
+                                        Create Account
+                                    </h2>
+
+                                    <p class="text-secondary">
+                                        Enter your details to get started.
+                                    </p>
+                                </div>
+
+
+                                <form method="post">
+                                    {% csrf_token %}
+
+                                    {% if form.non_field_errors %}
+                                        <div class="alert alert-danger">
+                                            {{ form.non_field_errors }}
+                                        </div>
+                                    {% endif %}
+
+                                    {% for field in form %}
+                                        <div class="mb-3">
+
+                                            <label for="{{ field.id_for_label }}"
+                                                   class="form-label">
+                                                {{ field.label }}
+                                            </label>
+
+                                            {{ field }}
+
+                                            {% if field.help_text %}
+                                                <div class="form-text">
+                                                    {{ field.help_text|safe }}
+                                                </div>
+                                            {% endif %}
+
+                                            {% if field.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {{ field.errors }}
+                                                </div>
+                                            {% endif %}
+
+                                        </div>
+                                    {% endfor %}
+
+
+                                    <button type="submit"
+                                            class="btn btn-green register-submit">
+                                        Create My Account →
+                                    </button>
+
+                                </form>
+
+
+                                <div class="text-center mt-4">
+                                    <span class="text-secondary small">
+                                        Already have an account?
+                                    </span>
+
+                                    <a href="#"
+                                       class="text-primary-green fw-bold small">
+                                        Login
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'home' %}"
+                       class="text-secondary small">
+                        ← Back to Home
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

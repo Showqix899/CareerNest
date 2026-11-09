@@ -1,0 +1,12 @@
+<div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;">
+  <h2 style="color: #2f7d4f; margin-top: 0;">Welcome, {{ full_name }}!</h2>
+  <p style="color: #374151;">Thanks for registering. Please confirm your email address to activate your account.</p>
+  <p style="margin: 28px 0;">
+    <a href="{{ activation_link }}"
+       style="background: #4caf7a; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">
+      Activate my account
+    </a>
+  </p>
+  <p style="color: #6b7280; font-size: 13px;">If the button doesn't work, copy this link into your browser:<br>{{ activation_link }}</p>
+  <p style="color: #6b7280; font-size: 13px;">If you didn't create this account, you can ignore this email.</p>
+</div>

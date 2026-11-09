@@ -1,0 +1,119 @@
+```django
+{% extends "base.html" %}
+
+{% block title %}CareerPath | Activation Failed{% endblock %}
+
+{% block extra_css %}
+<style>
+    .activation-section {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 15px;
+    }
+
+    .activation-card {
+        width: 100%;
+        max-width: 520px;
+        padding: 45px 35px;
+        text-align: center;
+        border-radius: 24px;
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .activation-icon {
+        width: 90px;
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        border-radius: 50%;
+        background: #FFF3E0;
+        color: #E69500;
+        font-size: 42px;
+    }
+
+    .activation-card h1 {
+        color: var(--dark-gray);
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .activation-card p {
+        color: var(--gray);
+        font-size: 16px;
+        line-height: 1.7;
+        margin-bottom: 25px;
+    }
+
+    .warning-note {
+        background: rgba(255, 193, 7, 0.10);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        border-radius: 12px;
+        padding: 15px;
+        color: #946200;
+        font-size: 14px;
+        margin-bottom: 25px;
+    }
+
+    .activation-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 576px) {
+        .activation-card {
+            padding: 35px 22px;
+        }
+
+        .activation-card h1 {
+            font-size: 25px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="activation-section">
+    <div class="activation-card">
+
+        <div class="activation-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+
+        <h1>Activation Failed</h1>
+
+        <p>
+            We couldn't activate your account. The activation link
+            may have expired, already been used, or is invalid.
+        </p>
+
+        <div class="warning-note">
+            <i class="bi bi-info-circle me-2"></i>
+            Please check your activation link or request a new one.
+        </div>
+
+        <div class="activation-actions">
+            <a href="{% url 'home' %}" class="btn btn-green px-4 py-2">
+                <i class="bi bi-house-door me-2"></i>
+                Back to Home
+            </a>
+
+            <a href="" class="btn btn-outline-green px-4 py-2">
+                <i class="bi bi-box-arrow-in-right me-2"></i>
+                Login
+            </a>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+```

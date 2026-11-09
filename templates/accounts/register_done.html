@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}CareerNest | Check Your Email{% endblock %}
+
+{% block extra_css %}
+<style>
+    .email-section {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 15px;
+    }
+
+    .email-card {
+        width: 100%;
+        max-width: 520px;
+        padding: 45px 35px;
+        text-align: center;
+        border-radius: 24px;
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .email-icon {
+        width: 85px;
+        height: 85px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        border-radius: 50%;
+        background: var(--light-green);
+        color: var(--dark-green);
+        font-size: 38px;
+    }
+
+    .email-card h1 {
+        color: var(--dark-gray);
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .email-card p {
+        color: var(--gray);
+        font-size: 16px;
+        line-height: 1.7;
+        margin-bottom: 25px;
+    }
+
+    .email-note {
+        background: rgba(139, 207, 155, 0.12);
+        border: 1px solid rgba(139, 207, 155, 0.3);
+        border-radius: 12px;
+        padding: 15px;
+        color: var(--dark-gray);
+        font-size: 14px;
+        margin-bottom: 25px;
+    }
+
+    @media (max-width: 576px) {
+        .email-card {
+            padding: 35px 22px;
+        }
+
+        .email-card h1 {
+            font-size: 25px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="email-section">
+    <div class="email-card">
+
+        <div class="email-icon">
+            <i class="bi bi-envelope-check"></i>
+        </div>
+
+        <h1>Check Your Email</h1>
+
+        <p>
+            You're almost there! We've sent an activation link
+            to your email address. Please check your inbox and
+            follow the link to activate your CareerPath account.
+        </p>
+
+        <div class="email-note">
+            <i class="bi bi-info-circle me-2"></i>
+            Didn't receive the email? Check your spam or junk folder.
+        </div>
+
+        <a href="{% url 'home' %}" class="btn btn-green px-4 py-2">
+            <i class="bi bi-house-door me-2"></i>
+            Back to Home
+        </a>
+
+    </div>
+</section>
+{% endblock %}

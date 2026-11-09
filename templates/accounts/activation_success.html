@@ -1,0 +1,106 @@
+```django
+{% extends "base.html" %}
+
+{% block title %}CareerPath | Account Activated{% endblock %}
+
+{% block extra_css %}
+<style>
+    .activation-section {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 15px;
+    }
+
+    .activation-card {
+        width: 100%;
+        max-width: 520px;
+        padding: 45px 35px;
+        text-align: center;
+        border-radius: 24px;
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .activation-icon {
+        width: 90px;
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        border-radius: 50%;
+        background: var(--light-green);
+        color: var(--dark-green);
+        font-size: 42px;
+    }
+
+    .activation-card h1 {
+        color: var(--dark-gray);
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .activation-card p {
+        color: var(--gray);
+        font-size: 16px;
+        line-height: 1.7;
+        margin-bottom: 28px;
+    }
+
+    .success-note {
+        background: rgba(139, 207, 155, 0.12);
+        border: 1px solid rgba(139, 207, 155, 0.3);
+        border-radius: 12px;
+        padding: 14px;
+        color: var(--dark-green);
+        font-size: 14px;
+        margin-bottom: 25px;
+    }
+
+    @media (max-width: 576px) {
+        .activation-card {
+            padding: 35px 22px;
+        }
+
+        .activation-card h1 {
+            font-size: 25px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="activation-section">
+    <div class="activation-card">
+
+        <div class="activation-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+
+        <h1>Account Activated!</h1>
+
+        <p>
+            Congratulations! Your email has been successfully verified.
+            Your CareerPath account is now active, and you're ready
+            to explore new opportunities.
+        </p>
+
+        <div class="success-note">
+            <i class="bi bi-shield-check me-2"></i>
+            Your account is verified and ready to use.
+        </div>
+
+        <a href="" class="btn btn-green px-4 py-2">
+            <i class="bi bi-box-arrow-in-right me-2"></i>
+            Login to Your Account
+        </a>
+
+    </div>
+</section>
+{% endblock %}
+```

@@ -1,0 +1,62 @@
+{% block navbar %}
+<nav class="navbar navbar-expand-lg glass sticky-top">
+    <div class="container py-2">
+
+        <a href="{% url 'home' %}" class="navbar-brand fw-bold fs-4 text-primary-green">
+            CareerNest<span class="text-dark">.</span>
+        </a>
+
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbar">
+
+            <ul class="navbar-nav mx-auto gap-lg-3">
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" href="#jobs">Find Jobs</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" href="#categories">Categories</a>
+                </li>
+                {% if user.is_authenticated and user.is_staff or user.superuser%}
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" href="{% url 'dashboard' %}">Admin Dashboard</a>
+                </li>
+                {% endif %}
+                {% if user.is_authenticated%}
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" href="#how-it-works">Dashboard</a>
+                </li>
+                {% endif%}
+            </ul>
+
+            <div class="d-flex align-items-center flex-column flex-lg-row gap-3 mt-3 mt-lg-0">
+                {% if user.is_authenticated %}
+                    <!-- User Profile Link, Picture, & Name -->
+                    <a href="{% url 'user_profile' %}" class="d-flex align-items-center gap-2 text-decoration-none">
+                        <!-- Safely check profile and profile_pic existence -->
+        {% with profile=user.profiles %}
+            {% if profile.profile_pic %}
+                <img src="{{ profile.profile_pic.url }}" alt="{{ user.username }}" class="rounded-circle shadow-sm" style="width: 38px; height: 38px; object-fit: cover;">
+            {% else %}
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light-green text-primary-green fw-bold small" style="width: 38px; height: 38px;">
+                    {{ user.username|first|upper }}
+                </div>
+            {% endif %}
+        {% endwith %}
+                        <span class="fw-semibold text-dark small">Hi, {{ user.full_name }}</span>
+                    </a>
+
+                    <a href="{% url 'accounts:user_logout' %}" class="btn btn-outline-danger btn-sm px-3">Logout</a>
+                {% else %}
+                    <a href="{% url 'accounts:user_login' %}" class="btn btn-outline-green px-4">Login</a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-green px-4">Register</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</nav>
+{% endblock %}

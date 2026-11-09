@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Project Details{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="glass p-4 p-md-5">
+                <h3 class="fw-bold text-primary-green mb-4 text-center">Project Information</h3>
+
+                <form method="POST" class="d-flex flex-column gap-3">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div>
+                            <label class="form-label fw-semibold small text-muted mb-1">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-green w-100 py-2">Save Project</button>
+                        <a href="{% url 'user_profile' %}" class="btn btn-outline-green w-100 py-2 text-center">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

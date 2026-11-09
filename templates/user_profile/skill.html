@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Skills{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="glass p-4 p-md-5">
+                <h3 class="fw-bold text-primary-green mb-4 text-center">Add New Skill</h3>
+
+                {% if error_message %}
+                    <div class="alert alert-danger rounded-3 mb-3">{{ error_message }}</div>
+                {% endif %}
+
+                <form method="POST" class="d-flex flex-column gap-3 mb-4">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div>
+                            <label class="form-label fw-semibold small text-muted mb-1">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-green py-2">Add Skill</button>
+                </form>
+
+                <hr class="my-4 opacity-25">
+
+                <h5 class="fw-bold text-primary-green mb-3">Existing Skills</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for skill in skills %}
+                        <div class="glass-card px-3 py-2 d-flex align-items-center gap-2">
+                            <span>{{ skill.name }}</span>
+                            <form action="{% url 'delete_skill' skill.id %}" method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-close btn-close-white" style="filter: invert(0.5);" aria-label="Delete"></button>
+                            </form>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small">No skills created yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

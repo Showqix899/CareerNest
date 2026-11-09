@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}My Project{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom Theme -->
+    
+<style>
+    :root {
+        /* Color Palette */
+        --primary-green: #8BCF9B;
+        --light-green: #E8F5E9;
+        --dark-green: #388E3C;
+        --white: #FFFFFF;
+        --light-gray: #F5F7F5;
+        --gray: #6C757D;
+        --dark-gray: #26382A;
+
+        /* Glass Effects */
+        --glass-bg: rgba(255, 255, 255, 0.65);
+        --glass-border: rgba(255, 255, 255, 0.8);
+        --glass-blur: blur(16px);
+        --glass-shadow: 0 8px 32px rgba(31, 80, 45, 0.08);
+    }
+
+    /* Global Styles */
+    body {
+        background: linear-gradient(
+            135deg,
+            #F5F7F5,
+            #E8F5E9,
+            #FFFFFF
+        );
+        background-attachment: fixed;
+        color: var(--dark-gray);
+        font-family: Arial, sans-serif;
+        min-height: 100vh;
+    }
+
+    /* Frosted Glass */
+    .glass {
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        border-radius: 18px;
+    }
+
+    /* Glass Card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        box-shadow: var(--glass-shadow);
+        transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(31, 80, 45, 0.13);
+    }
+
+    /* Background Utilities */
+    .bg-primary-green {
+        background-color: var(--primary-green);
+    }
+
+    .bg-light-green {
+        background-color: var(--light-green);
+    }
+
+    .bg-glass {
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+    }
+
+    /* Text Utilities */
+    .text-primary-green {
+        color: var(--dark-green);
+    }
+
+    /* Buttons */
+    .btn-green {
+        background-color: var(--dark-green);
+        color: var(--white);
+        border: 1px solid var(--dark-green);
+        border-radius: 10px;
+        transition: 0.3s ease;
+    }
+
+    .btn-green:hover {
+        background-color: #2E7D32;
+        border-color: #2E7D32;
+        color: var(--white);
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-green {
+        color: var(--dark-green);
+        border: 1px solid var(--dark-green);
+        border-radius: 10px;
+        transition: 0.3s ease;
+    }
+
+    .btn-outline-green:hover {
+        background-color: var(--dark-green);
+        color: var(--white);
+    }
+
+    /* Form Controls */
+    .form-control,
+    .form-select {
+        border: 1px solid #DDE5DE;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.75);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 0.2rem rgba(139, 207, 155, 0.2);
+    }
+
+    /* Links */
+    a {
+        text-decoration: none;
+    }
+
+    /* Smooth Scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Selection */
+    ::selection {
+        background-color: var(--primary-green);
+        color: var(--dark-gray);
+    }
+
+    {% block extra_styles %}{% endblock %}
+</style>
+
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    {% include 'navbar.html' %}
+
+    {% block content %}
+    {% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>
