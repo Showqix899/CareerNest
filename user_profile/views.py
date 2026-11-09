@@ -3,10 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.db import transaction
+from django.views.decorators.http import require_POST
 
 from core.decorator import admin_required
-from .models import CV,Skill,ProjectDescription,UserProfile,City
-from .forms import UserCVForms,UserProfileForm,ProjectDescriptionForm,SkillForm,CityForm
+from .models import CV,Skill,ProjectDescription,UserProfile,City,ProjectMedia
+from .forms import UserCVForms,UserProfileForm,ProjectDescriptionForm,SkillForm,CityForm,ProjectMediaForm
 
 
 
@@ -161,7 +162,7 @@ def user_profile_update(request):
 @login_required
 def add_projects(request):
     if request.method == "POST":
-        form = ProjectDescriptionForm(request.POST)
+        form = ProjectMediaForm(request.POST, request.FILES, project=project)
         
         if form.is_valid():
             try:
@@ -259,10 +260,66 @@ def user_cv_delete(request, uuid):
         cv.delete()
         
     return redirect("user_profile")
-        
-        
+
+#project details 
+@login_required
+def project_detail(request, pk):
+    # Use prefetch_related('media') to fetch the project and all its 
+    # related images/videos efficiently in minimal database queries.
+    project = get_object_or_404(
+        ProjectDescription.objects.prefetch_related('media'),
+        id=pk,
+        user=request.user  # Ensures the user can only view their own projects
+    )
+
+    context = {
+        'project': project,
+    }
+    return render(request, 'user_profile/project_detail.html', context)
     
+
+        
+@login_required
+def add_project_media(request, project_id):
+    # Ensure the user only edits their own projects
+    project = get_object_or_404(ProjectDescription, id=project_id, user=request.user)
+
+    if request.method == 'POST':
+        form = ProjectMediaForm(request.POST, request.FILES, project=project)
+        if form.is_valid():
+            form.save()
+            # Redirect back to project detail or edit page
+            return redirect('project_detail', pk=project.id)
+    else:
+        form = ProjectMediaForm(project=project)
+
+    context = {
+        'project': project,
+        'form': form,
+    }
+    return render(request, 'user_profile/add_media.html', context)
+
+
+@login_required
+@require_POST
+def remove_project_media(request, media_id):
+    # Fetch the media item and make sure it belongs to a project owned by the logged-in user
+    media_item = get_object_or_404(
+        ProjectMedia, 
+        id=media_id, 
+        project__user=request.user
+    )
     
+    project_id = media_item.project.id
+    
+    # Optional: Delete the actual file from storage (MEDIA_ROOT)
+    if media_item.file:
+        media_item.file.delete(save=False)
+        
+    # Delete the database record
+    media_item.delete()
+    
+    return redirect('project_detail', pk=project_id)
 
 
 

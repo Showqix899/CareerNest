@@ -1,0 +1,558 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.title|default:"Project Details" }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}
+
+{% block extra_styles %}
+    /* ---------- Soft colour behind the glass so the blur is visible ---------- */
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+            radial-gradient(40vmax 40vmax at 8% 12%, rgba(139, 207, 155, 0.55), transparent 70%),
+            radial-gradient(35vmax 35vmax at 92% 20%, rgba(56, 142, 60, 0.22), transparent 70%),
+            radial-gradient(45vmax 45vmax at 70% 95%, rgba(139, 207, 155, 0.4), transparent 70%);
+    }
+
+    /* ---------- Hero ---------- */
+    .project-hero {
+        padding: clamp(1.5rem, 4vw, 2.75rem);
+        margin: 1.5rem 0 2rem;
+    }
+
+    .project-title {
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        color: var(--dark-green);
+        overflow-wrap: anywhere;
+    }
+
+    .project-description {
+        max-width: 68ch;
+        color: #4a5a4e;
+        font-size: 1.05rem;
+        line-height: 1.7;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
+    /* ---------- Stats (counts + capacity) ---------- */
+    .stat-tile {
+        background: rgba(255, 255, 255, 0.5);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 14px;
+        padding: 0.9rem 1.1rem;
+    }
+
+    .stat-tile .stat-label {
+        font-size: 0.85rem;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .stat-tile .stat-value {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+    }
+
+    .capacity {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(56, 142, 60, 0.14);
+        overflow: hidden;
+        margin-top: 0.55rem;
+    }
+
+    .capacity > span {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: inherit;
+        background: var(--dark-green);
+        transition: width 0.5s ease;
+    }
+
+    .capacity.is-full > span {
+        background: #d98324;
+    }
+
+    /* ---------- Gallery toolbar + filter ---------- */
+    .filter-group {
+        display: inline-flex;
+        padding: 0.3rem;
+        gap: 0.25rem;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.55);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+    }
+
+    .filter-btn {
+        border: 0;
+        background: transparent;
+        color: var(--dark-gray);
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 0.4rem 0.9rem;
+        border-radius: 10px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .filter-btn:hover {
+        background: rgba(139, 207, 155, 0.25);
+    }
+
+    .filter-btn.active {
+        background: var(--dark-green);
+        color: var(--white);
+    }
+
+    .filter-btn .count {
+        opacity: 0.75;
+        font-weight: 500;
+        margin-left: 0.2rem;
+    }
+
+    /* ---------- Media cards ---------- */
+    .media-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 0.65rem;
+        background: rgba(255, 255, 255, 0.55);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        box-shadow: var(--glass-shadow);
+        transition: box-shadow 0.25s ease, transform 0.25s ease;
+    }
+
+    .media-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 32px rgba(31, 80, 45, 0.14);
+    }
+
+    .media-frame {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(38, 56, 42, 0.08);
+    }
+
+    .media-frame img,
+    .media-frame video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .media-frame video {
+        background: #14201a;
+    }
+
+    .media-open {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: zoom-in;
+    }
+
+    .media-open::after {
+        content: "\F52A"; /* bootstrap-icons: arrows-angle-expand */
+        font-family: "bootstrap-icons";
+        position: absolute;
+        right: 0.6rem;
+        bottom: 0.6rem;
+        width: 2rem;
+        height: 2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--white);
+        background: rgba(20, 32, 26, 0.55);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        transform: scale(0.9);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .media-open:hover::after,
+    .media-open:focus-visible::after {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .type-badge {
+        position: absolute;
+        top: 0.6rem;
+        left: 0.6rem;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.65rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--white);
+        background: rgba(20, 32, 26, 0.55);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 999px;
+        pointer-events: none;
+    }
+
+    .media-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.7rem 0.35rem 0.2rem;
+        margin-top: auto;
+    }
+
+    .media-date {
+        font-size: 0.82rem;
+        color: var(--gray);
+    }
+
+    .btn-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #b3261e;
+        background: rgba(179, 38, 30, 0.07);
+        border: 1px solid rgba(179, 38, 30, 0.25);
+        border-radius: 999px;
+        padding: 0.3rem 0.8rem;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .btn-delete:hover {
+        background: #b3261e;
+        color: var(--white);
+    }
+
+    /* ---------- Empty state ---------- */
+    .empty-state {
+        text-align: center;
+        padding: clamp(2.5rem, 7vw, 4.5rem) 1.5rem;
+    }
+
+    .empty-icon {
+        width: 4.25rem;
+        height: 4.25rem;
+        margin: 0 auto 1.1rem;
+        display: grid;
+        place-items: center;
+        font-size: 1.8rem;
+        color: var(--dark-green);
+        background: rgba(139, 207, 155, 0.3);
+        border-radius: 50%;
+    }
+
+    /* ---------- Modals (lightbox + confirm) ---------- */
+    .modal-glass .modal-content {
+        background: rgba(255, 255, 255, 0.78);
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(20, 40, 28, 0.25);
+    }
+
+    .modal-backdrop.show {
+        opacity: 0.35;
+    }
+
+    .lightbox-img {
+        display: block;
+        max-width: 100%;
+        max-height: 80vh;
+        margin: 0 auto;
+        border-radius: 14px;
+    }
+
+    /* ---------- Accessibility ---------- */
+    .filter-btn:focus-visible,
+    .btn-delete:focus-visible,
+    .media-open:focus-visible {
+        outline: 3px solid rgba(56, 142, 60, 0.55);
+        outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .media-card,
+        .capacity > span,
+        .media-open::after {
+            transition: none;
+        }
+        .media-card:hover {
+            transform: none;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .filter-group {
+            display: flex;
+            width: 100%;
+        }
+        .filter-btn {
+            flex: 1;
+            padding-inline: 0.4rem;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Back navigation -->
+    <a href="{% url 'user_profile' %}" class="btn btn-outline-green btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to projects
+    </a>
+
+    <!-- Project header -->
+    <section class="glass project-hero">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-7">
+                <h1 class="project-title mb-3">{{ project.title }}</h1>
+                <p class="project-description mb-0">{{ project.description|default:"No description has been added to this project yet." }}</p>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-tile">
+                            <div class="stat-label"><i class="bi bi-image"></i> Images</div>
+                            <div class="stat-value"><span id="imageCount">0</span> / 5</div>
+                            <div class="capacity" id="imageCapacity"><span></span></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-tile">
+                            <div class="stat-label"><i class="bi bi-camera-video"></i> Videos</div>
+                            <div class="stat-value"><span id="videoCount">0</span> / 3</div>
+                            <div class="capacity" id="videoCapacity"><span></span></div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <a href="{% url 'add_project_media' project.id %}" class="btn btn-green w-100 py-2">
+                            <i class="bi bi-cloud-arrow-up me-1"></i> Add media
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% with media_list=project.media.all %}
+        {% if media_list %}
+
+            <!-- Gallery toolbar -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+                <h2 class="h4 fw-bold text-primary-green m-0">Project media</h2>
+
+                <div class="filter-group" role="group" aria-label="Filter media">
+                    <button type="button" class="filter-btn active" data-filter="all" aria-pressed="true">
+                        All<span class="count" id="countAll"></span>
+                    </button>
+                    <button type="button" class="filter-btn" data-filter="image" aria-pressed="false">
+                        Images<span class="count" id="countImage"></span>
+                    </button>
+                    <button type="button" class="filter-btn" data-filter="video" aria-pressed="false">
+                        Videos<span class="count" id="countVideo"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gallery grid -->
+            <div class="row g-4" id="mediaGrid">
+                {% for media in media_list %}
+                    <div class="col-12 col-sm-6 col-lg-4" data-media-item data-type="{{ media.media_type }}">
+                        <article class="media-card">
+                            <div class="media-frame">
+                                <span class="type-badge">
+                                    {% if media.media_type == 'image' %}
+                                        <i class="bi bi-image"></i>
+                                    {% else %}
+                                        <i class="bi bi-camera-video"></i>
+                                    {% endif %}
+                                    {{ media.get_media_type_display }}
+                                </span>
+
+                                {% if media.media_type == 'image' %}
+                                    <img src="{{ media.file.url }}" alt="Image for {{ project.title }}" loading="lazy">
+                                    <button type="button" class="media-open"
+                                            data-src="{{ media.file.url }}"
+                                            aria-label="View image full size"></button>
+                                {% elif media.media_type == 'video' %}
+                                    <video controls preload="metadata" playsinline src="{{ media.file.url }}">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                {% endif %}
+                            </div>
+
+                            <div class="media-footer">
+                                <span class="media-date">
+                                    <i class="bi bi-calendar3 me-1"></i>{{ media.uploaded_at|date:"M d, Y" }}
+                                </span>
+                                <button type="button" class="btn-delete"
+                                        data-delete-url="{% url 'remove_project_media' media.id %}">
+                                    <i class="bi bi-trash3"></i> Delete
+                                </button>
+                            </div>
+                        </article>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Shown when a filter has no results -->
+            <div class="glass empty-state d-none" id="filterEmpty">
+                <div class="empty-icon"><i class="bi bi-funnel"></i></div>
+                <p class="text-secondary mb-0">Nothing to show for this filter.</p>
+            </div>
+
+        {% else %}
+
+            <!-- Empty state -->
+            <div class="glass empty-state">
+                <div class="empty-icon"><i class="bi bi-images"></i></div>
+                <h2 class="h5 fw-bold text-primary-green">No media yet</h2>
+                <p class="text-secondary mb-4">Add up to 5 images and 3 videos to show off this project.</p>
+                <a href="{% url 'add_project_media' project.id %}" class="btn btn-green px-4">
+                    <i class="bi bi-cloud-arrow-up me-1"></i> Upload media
+                </a>
+            </div>
+
+        {% endif %}
+    {% endwith %}
+
+</div>
+
+<!-- Image lightbox -->
+<div class="modal fade modal-glass" id="lightboxModal" tabindex="-1" aria-label="Image preview" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content p-2 p-sm-3">
+            <button type="button" class="btn-close ms-auto mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
+            <img src="" alt="Full size project image" class="lightbox-img" id="lightboxImg">
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirmation -->
+<div class="modal fade modal-glass" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" id="deleteForm" class="m-0">
+                {% csrf_token %}
+                <div class="modal-body p-4 text-center">
+                    <div class="empty-icon" style="color:#b3261e;background:rgba(179,38,30,0.1);">
+                        <i class="bi bi-trash3"></i>
+                    </div>
+                    <h2 class="h5 fw-bold" id="deleteModalLabel">Delete this file?</h2>
+                    <p class="text-secondary mb-4">This removes it from the project and can't be undone.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger px-4">Delete</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const items = Array.from(document.querySelectorAll('[data-media-item]'));
+    if (!items.length) return;
+
+    const MAX = { image: 5, video: 3 };
+    const counts = { image: 0, video: 0 };
+    items.forEach(el => { counts[el.dataset.type] = (counts[el.dataset.type] || 0) + 1; });
+
+    // ----- Counts + capacity bars -----
+    function setStat(type, label) {
+        document.getElementById(type + 'Count').textContent = counts[type];
+        const bar = document.getElementById(type + 'Capacity');
+        bar.firstElementChild.style.width = Math.min(100, (counts[type] / MAX[type]) * 100) + '%';
+        bar.classList.toggle('is-full', counts[type] >= MAX[type]);
+    }
+    setStat('image');
+    setStat('video');
+
+    document.getElementById('countAll').textContent = ' ' + items.length;
+    document.getElementById('countImage').textContent = ' ' + counts.image;
+    document.getElementById('countVideo').textContent = ' ' + counts.video;
+
+    // ----- Filter -----
+    const buttons = document.querySelectorAll('.filter-btn');
+    const emptyMsg = document.getElementById('filterEmpty');
+
+    buttons.forEach(btn => btn.addEventListener('click', () => {
+        const filter = btn.dataset.filter;
+        let visible = 0;
+
+        buttons.forEach(b => {
+            const on = b === btn;
+            b.classList.toggle('active', on);
+            b.setAttribute('aria-pressed', on);
+        });
+
+        items.forEach(el => {
+            const show = filter === 'all' || el.dataset.type === filter;
+            el.classList.toggle('d-none', !show);
+            if (show) visible++;
+            else el.querySelectorAll('video').forEach(v => v.pause());
+        });
+
+        emptyMsg.classList.toggle('d-none', visible > 0);
+    }));
+
+    // ----- Image lightbox -----
+    const lightboxEl = document.getElementById('lightboxModal');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightbox = new bootstrap.Modal(lightboxEl);
+
+    document.querySelectorAll('.media-open').forEach(btn => btn.addEventListener('click', () => {
+        lightboxImg.src = btn.dataset.src;
+        lightbox.show();
+    }));
+    lightboxEl.addEventListener('hidden.bs.modal', () => { lightboxImg.src = ''; });
+
+    // ----- Delete confirmation -----
+    const deleteForm = document.getElementById('deleteForm');
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    document.querySelectorAll('.btn-delete').forEach(btn => btn.addEventListener('click', () => {
+        deleteForm.action = btn.dataset.deleteUrl;
+        deleteModal.show();
+    }));
+})();
+</script>
+{% endblock %}

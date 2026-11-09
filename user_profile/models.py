@@ -36,6 +36,22 @@ class ProjectDescription(models.Model):
         
     def __str__(self):
         return self.title
+    
+#prject media
+class ProjectMedia(models.Model):
+    
+    class MediaType(models.TextChoices):
+        IMAGE='image','Image'
+        VIDEO='video','Video'
+        
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(ProjectDescription, on_delete=models.CASCADE, related_name='media')
+    file = models.FileField(upload_to='static/project_media/')
+    media_type = models.CharField(max_length=10, choices=MediaType.choices)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.media_type} for {self.project.title}"
 
 
 #user profle

@@ -25,4 +25,11 @@ urlpatterns = [
     # CV Management
     path("cv/add/", views.user_cv_add, name="user_cv_add"),
     path("cv/delete/<uuid:uuid>/", views.user_cv_delete, name="user_cv_delete"),
+    
+    # Project Detail view
+    path('project/<uuid:pk>/', views.project_detail, name='project_detail'),
+    
+    # Media management views
+    path('project/<uuid:project_id>/media/add/', views.add_project_media, name='add_project_media'),
+    path('media/<uuid:media_id>/delete/', views.remove_project_media, name='remove_project_media'),
 ]
