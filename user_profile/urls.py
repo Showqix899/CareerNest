@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     # Main User Profile View
     path("profile/", views.user_profile, name="user_profile"),
+    path("profile/<uuid:user_id>/", views.get_user_profile_details, name="user_profile_detail"),
     
     # City Management (Admin)
     path("city/create/", views.create_city, name="create_city"),

@@ -1,55 +1,77 @@
-{% block navbar %}
-<nav class="navbar navbar-expand-lg glass sticky-top">
-    <div class="container py-2">
+<nav class="navbar navbar-expand-lg site-nav glass">
+    <div class="container-fluid px-3 px-lg-4">
 
-        <a href="{% url 'home' %}" class="navbar-brand fw-bold fs-4 text-primary-green">
+        <a href="{% url 'home' %}" class="navbar-brand fw-bold fs-4 text-primary-green me-2">
             CareerNest<span class="text-dark">.</span>
         </a>
 
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse" data-bs-target="#navbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <!-- Mobile quick actions -->
+        <div class="d-flex align-items-center gap-2 ms-auto d-lg-none">
+            {% if user.is_authenticated %}
+            <button type="button" class="nav-icon-btn" data-bs-toggle="modal"
+                    data-bs-target="#userSearchModal" aria-label="Search people">
+                <i class="bi bi-search"></i>
+            </button>
+            {% endif %}
+            <button class="nav-icon-btn" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbar" aria-controls="navbar" aria-label="Toggle menu">
+                <i class="bi bi-list fs-4"></i>
+            </button>
+        </div>
 
         <div class="collapse navbar-collapse" id="navbar">
 
-            <ul class="navbar-nav mx-auto gap-lg-3">
-                <li class="nav-item">
-                    <a class="nav-link fw-semibold" href="#jobs">Find Jobs</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-semibold" href="#categories">Categories</a>
-                </li>
-                {% if user.is_authenticated and user.is_staff or user.superuser%}
-                <li class="nav-item">
-                    <a class="nav-link fw-semibold" href="{% url 'dashboard' %}">Admin Dashboard</a>
-                </li>
+            <ul class="navbar-nav mx-lg-auto gap-lg-1 mt-3 mt-lg-0">
+                <li class="nav-item"><a class="nav-pill" href="#jobs">Find Jobs</a></li>
+                <li class="nav-item"><a class="nav-pill" href="#categories">Categories</a></li>
+                {% if user.is_staff or user.is_superuser %}
+                <li class="nav-item"><a class="nav-pill" href="{% url 'dashboard' %}">Admin Dashboard</a></li>
                 {% endif %}
-                {% if user.is_authenticated%}
-                <li class="nav-item">
-                    <a class="nav-link fw-semibold" href="#how-it-works">Dashboard</a>
-                </li>
-                {% endif%}
+                {% if user.is_authenticated %}
+                <li class="nav-item"><a class="nav-pill" href="#how-it-works">Dashboard</a></li>
+                {% endif %}
             </ul>
 
-            <div class="d-flex align-items-center flex-column flex-lg-row gap-3 mt-3 mt-lg-0">
+            <div class="nav-right d-flex align-items-stretch align-items-lg-center flex-column flex-lg-row gap-2 gap-lg-3 mt-3 mt-lg-0">
                 {% if user.is_authenticated %}
-                    <!-- User Profile Link, Picture, & Name -->
-                    <a href="{% url 'user_profile' %}" class="d-flex align-items-center gap-2 text-decoration-none">
-                        <!-- Safely check profile and profile_pic existence -->
-        {% with profile=user.profiles %}
-            {% if profile.profile_pic %}
-                <img src="{{ profile.profile_pic.url }}" alt="{{ user.username }}" class="rounded-circle shadow-sm" style="width: 38px; height: 38px; object-fit: cover;">
-            {% else %}
-                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light-green text-primary-green fw-bold small" style="width: 38px; height: 38px;">
-                    {{ user.username|first|upper }}
-                </div>
-            {% endif %}
-        {% endwith %}
-                        <span class="fw-semibold text-dark small">Hi, {{ user.full_name }}</span>
-                    </a>
 
-                    <a href="{% url 'accounts:user_logout' %}" class="btn btn-outline-danger btn-sm px-3">Logout</a>
+                    <!-- Desktop search trigger -->
+                    <button type="button" class="nav-search-btn d-none d-lg-flex"
+                            data-bs-toggle="modal" data-bs-target="#userSearchModal">
+                        <i class="bi bi-search"></i>
+                        <span>Search people...</span>
+                    </button>
+
+                    <!-- User dropdown -->
+                    <div class="dropdown">
+                        <button class="nav-user-btn dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="nav-avatar position-relative flex-shrink-0">
+                                <span class="nav-avatar-fallback">{{ user.full_name|default:user.email|first|upper }}</span>
+                                {% with profile=user.profiles %}
+                                    {% if profile.profile_pic %}
+                                        <img src="{{ profile.profile_pic.url }}" alt="" onerror="this.remove()">
+                                    {% endif %}
+                                {% endwith %}
+                            </span>
+                            <span class="fw-semibold small text-truncate nav-user-name">{{ user.full_name|default:user.email }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end glass-menu">
+                            <li class="px-3 py-2 small text-muted text-truncate" style="max-width:240px">{{ user.email }}</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'user_profile' %}">
+                                    <i class="bi bi-person me-2"></i>My Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'accounts:user_logout' %}">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
                 {% else %}
                     <a href="{% url 'accounts:user_login' %}" class="btn btn-outline-green px-4">Login</a>
                     <a href="{% url 'accounts:register' %}" class="btn btn-green px-4">Register</a>
@@ -59,4 +81,192 @@
         </div>
     </div>
 </nav>
-{% endblock %}
+
+{% if user.is_authenticated %}
+<!-- Search modal (kept outside <nav>) -->
+<div class="modal fade" id="userSearchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable">
+        <div class="modal-content search-glass">
+            <div class="search-head">
+                <div class="search-field">
+                    <i class="bi bi-search"></i>
+                    <input id="userSearchInput" type="search" placeholder="Search by name or email"
+                           autocomplete="off" data-url="{% url 'accounts:user_search' %}">
+                </div>
+                <button type="button" class="nav-icon-btn" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body px-3 pb-3 pt-2" id="userSearchResults">
+                <p class="text-center text-muted small py-4 mb-0">Type at least 2 characters to search.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ---------- Floating navbar ---------- */
+    .site-nav {
+        position: sticky; top: 10px; z-index: 1030;
+        margin: 10px auto; width: calc(100% - 20px); max-width: 1320px;
+        padding: .45rem 0;
+        background: rgba(255,255,255,.55);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+    }
+    @media (max-width: 991.98px) {
+        .site-nav { border-radius: 18px; }
+        .site-nav .navbar-collapse {
+            margin-top: .6rem; padding: .75rem;
+            background: rgba(255,255,255,.6);
+            border: 1px solid rgba(255,255,255,.85);
+            border-radius: 16px;
+        }
+    }
+
+    .nav-pill {
+        display: block; padding: .5rem 1rem; border-radius: 999px;
+        color: var(--dark-gray); font-weight: 600; font-size: .95rem;
+        transition: background .2s ease, color .2s ease;
+    }
+    .nav-pill:hover { background: var(--light-green); color: var(--dark-green); }
+
+    .nav-icon-btn {
+        width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 12px; border: 1px solid rgba(255,255,255,.9);
+        background: rgba(255,255,255,.6); color: var(--dark-gray);
+        transition: background .2s ease;
+    }
+    .nav-icon-btn:hover { background: var(--light-green); }
+
+    .nav-search-btn {
+        align-items: center; gap: .6rem; min-width: 230px; padding: .5rem 1rem;
+        border-radius: 999px; border: 1px solid rgba(255,255,255,.9);
+        background: rgba(255,255,255,.6); color: var(--gray); font-size: .9rem;
+        transition: all .2s ease;
+    }
+    .nav-search-btn:hover { background: #fff; color: var(--dark-gray); box-shadow: 0 4px 14px rgba(31,80,45,.1); }
+    @media (min-width: 992px) and (max-width: 1199.98px) { .nav-search-btn { min-width: 0; } .nav-search-btn span { display: none; } }
+
+    .nav-user-btn {
+        display: flex; align-items: center; gap: .6rem; width: 100%;
+        padding: .3rem .9rem .3rem .3rem; border-radius: 999px;
+        border: 1px solid rgba(255,255,255,.9); background: rgba(255,255,255,.6);
+        color: var(--dark-gray); transition: background .2s ease;
+    }
+    .nav-user-btn:hover { background: #fff; }
+    .nav-user-name { max-width: 140px; }
+    @media (min-width: 992px) { .nav-user-btn { width: auto; } }
+    @media (min-width: 992px) and (max-width: 1199.98px) { .nav-user-name { display: none; } .nav-user-btn { padding-right: .5rem; } }
+
+    .nav-avatar, .nav-avatar-fallback, .nav-avatar img {
+        width: 34px; height: 34px; border-radius: 50%;
+    }
+    .nav-avatar { display: inline-block; }
+    .nav-avatar img { position: absolute; inset: 0; object-fit: cover; }
+    .nav-avatar-fallback {
+        display: flex; align-items: center; justify-content: center;
+        background: var(--primary-green); color: #fff; font-weight: 700; font-size: .85rem;
+    }
+
+    .glass-menu {
+        background: rgba(255,255,255,.75) !important;
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,.9) !important;
+        border-radius: 16px !important; box-shadow: var(--glass-shadow);
+        padding: .4rem; min-width: 200px;
+    }
+    .glass-menu .dropdown-item { border-radius: 10px; font-size: .92rem; padding: .5rem .75rem; }
+    .glass-menu .dropdown-item:hover { background: var(--light-green); }
+    .glass-menu .dropdown-item.text-danger:hover { background: rgba(220,53,69,.1); }
+
+    /* ---------- Search popup ---------- */
+    .modal-backdrop { --bs-backdrop-bg: #16301f; }
+    .modal-backdrop.show { opacity: .28; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+
+    #userSearchModal .modal-dialog { max-width: 620px; }
+    @media (min-width: 576px) { #userSearchModal .modal-dialog { margin-top: 10vh; } }
+
+    #userSearchModal .search-glass {
+        background: linear-gradient(145deg, rgba(255,255,255,.6), rgba(255,255,255,.28));
+        backdrop-filter: blur(28px) saturate(180%);
+        -webkit-backdrop-filter: blur(28px) saturate(180%);
+        border: 1px solid rgba(255,255,255,.75);
+        border-radius: 26px;
+        box-shadow: 0 25px 60px rgba(20,60,32,.28), inset 0 1px 0 rgba(255,255,255,.9);
+        min-height: 200px; overflow: hidden;
+    }
+    @media (max-width: 575.98px) { #userSearchModal .search-glass { border-radius: 0; } }
+
+    .search-head { display: flex; align-items: center; gap: .6rem; padding: 1rem 1rem .5rem; }
+    .search-field {
+        flex: 1; display: flex; align-items: center; gap: .6rem; padding: .65rem 1rem;
+        border-radius: 999px; background: rgba(255,255,255,.55);
+        border: 1px solid rgba(255,255,255,.9);
+        box-shadow: inset 0 2px 6px rgba(31,80,45,.06);
+        transition: box-shadow .2s ease, background .2s ease;
+    }
+    .search-field:focus-within {
+        background: rgba(255,255,255,.85);
+        box-shadow: 0 0 0 .22rem rgba(139,207,155,.35);
+    }
+    .search-field i { color: var(--dark-green); }
+    .search-field input {
+        flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+        font-size: 1rem; color: var(--dark-gray);
+    }
+    .search-field input::-webkit-search-cancel-button { cursor: pointer; }
+
+    /* Result rows */
+    .user-result {
+        color: inherit; margin-bottom: .4rem;
+        background: rgba(255,255,255,.4); border: 1px solid rgba(255,255,255,.7);
+        border-radius: 16px !important;
+        transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .user-result:hover {
+        background: rgba(255,255,255,.85); transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(31,80,45,.12);
+    }
+    .search-avatar, .search-avatar-fallback, .search-avatar img {
+        width: 46px; height: 46px; border-radius: 50%;
+    }
+    .search-avatar { box-shadow: 0 0 0 2px rgba(255,255,255,.9); }
+    .search-avatar img { position: absolute; inset: 0; object-fit: cover; }
+    .search-avatar-fallback {
+        display: flex; align-items: center; justify-content: center;
+        background: var(--primary-green); color: #fff; font-weight: 700;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('userSearchModal');
+    const input = document.getElementById('userSearchInput');
+    const box = document.getElementById('userSearchResults');
+    const url = input.dataset.url;
+    const hint = box.innerHTML;
+    let timer, ctrl;
+
+    async function run() {
+        const q = input.value.trim();
+        if (ctrl) ctrl.abort();
+        if (q.length < 2) { box.innerHTML = hint; return; }
+        ctrl = new AbortController();
+        box.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-success"></div></div>';
+        try {
+            const r = await fetch(`${url}?q=${encodeURIComponent(q)}`, { signal: ctrl.signal });
+            if (!r.ok) throw new Error();
+            box.innerHTML = await r.text();
+        } catch (e) {
+            if (e.name !== 'AbortError')
+                box.innerHTML = '<p class="text-center text-danger small py-4 mb-0">Something went wrong. Try again.</p>';
+        }
+    }
+
+    input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(run, 300); });
+    modal.addEventListener('shown.bs.modal', () => input.focus());
+    modal.addEventListener('hidden.bs.modal', () => { input.value = ''; box.innerHTML = hint; });
+});
+</script>
+{% endif %}

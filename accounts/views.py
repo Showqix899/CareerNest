@@ -6,13 +6,26 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode,url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login,logout
-
+import hashlib
+import json
+from django.core.cache import cache
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 from .forms import RegisterForm,LoginForm
 from .models import User
 from user_profile.models import UserProfile
 from .tasks import send_activation_email
 from .tokens import account_activation_token
+from django.views.decorators.http import require_GET
+from django.db.models import Q
+
+
+
+
+SEARCH_CACHE_TTL = 30
+SEARCH_PAGE_SIZE = 10
 
 
 # user registration
@@ -97,3 +110,20 @@ def logout_view(request):
 def home(request):
     
     return render (request,"home.html")
+
+
+
+
+@login_required
+@require_GET
+def user_search(request):
+    q = request.GET.get('q', '').strip()[:100]
+    users = []
+    if len(q) >= 2:
+        users = (
+            User.objects.filter(is_active=True)
+            .filter(Q(full_name__icontains=q) | Q(email__icontains=q))
+            .select_related('profiles')   # avoids N+1 for profile pics
+            .order_by('full_name')[:10]
+        )
+    return render(request, 'accounts/user_search_results.html', {'users': users, 'q': q})

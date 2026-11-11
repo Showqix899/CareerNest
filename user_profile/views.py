@@ -8,6 +8,9 @@ from django.views.decorators.http import require_POST
 from core.decorator import admin_required
 from .models import CV,Skill,ProjectDescription,UserProfile,City,ProjectMedia
 from .forms import UserCVForms,UserProfileForm,ProjectDescriptionForm,SkillForm,CityForm,ProjectMediaForm
+from peers.models import PeerRequest
+from accounts.models import User
+from django.db.models import Q
 
 
 
@@ -15,19 +18,20 @@ from .forms import UserCVForms,UserProfileForm,ProjectDescriptionForm,SkillForm,
 
 # Create your views here.
 #user profile 
+@login_required
 def user_profile(request):
-    
-    profile_deatils = UserProfile.objects.filter(user=request.user)
-    projects = ProjectDescription.objects.filter(user=request.user)
-    cvs = CV.objects.filter(user=request.user)
-    
-    
     context = {
-        "profile":profile_deatils,
-        "projects":projects,
-        "cvs":cvs
-    }    
-    return render(request,"user_profile/user_profile.html",{"context":context})
+        "profile": (
+            UserProfile.objects.filter(user=request.user)
+            .select_related("city")
+            .prefetch_related("skills")
+            .order_by("pk")   # lets the template's .first reuse the cached result
+        ),
+        "projects": ProjectDescription.objects.filter(user=request.user).only("id", "title", "description"),
+        "cvs": CV.objects.filter(user=request.user).only("id", "title"),
+    }
+    return render(request, "user_profile/user_profile.html", {"context": context})
+
 
 
 #create city
@@ -322,8 +326,51 @@ def remove_project_media(request, media_id):
     return redirect('project_detail', pk=project_id)
 
 
+@login_required
+def get_user_profile_details(request, user_id):
+    if user_id == request.user.id:
+        return redirect("user_profile")
 
+    target = get_object_or_404(
+        User.objects.only("id", "full_name", "email"),
+        pk=user_id, is_active=True,
+    )
 
+    # One query covers both directions (max 2 rows due to the unique constraint)
+    links = PeerRequest.objects.filter(
+        Q(sender=request.user, receiver=target) | Q(sender=target, receiver=request.user)
+    ).values("id", "sender_id", "status")
+
+    peer_status, peer_request_id = "none", None   # none | sent | incoming | connected
+    for link in links:
+        if link["status"] == PeerRequest.Status.ACCEPTED:
+            peer_status, peer_request_id = "connected", None
+            break
+        if link["status"] == PeerRequest.Status.PENDING:
+            if link["sender_id"] == request.user.id:
+                peer_status = "sent"
+            else:
+                peer_status, peer_request_id = "incoming", str(link["id"])
+
+    # order_by("pk") matters: the template calls .first, which only reuses the
+    # prefetched/cached result when the queryset is already ordered.
+    profile_qs = (
+        UserProfile.objects.filter(user=target)
+        .select_related("city")
+        .prefetch_related("skills")
+        .order_by("pk")
+    )
+
+    context = {
+        "profile": profile_qs,
+        "projects": ProjectDescription.objects.filter(user=target).only("id", "title", "description"),
+        "cvs": CV.objects.filter(user=target).only("id", "title"),
+        "owner": target,
+        "is_other": True,
+        "peer_status": peer_status,
+        "peer_request_id": peer_request_id,
+    }
+    return render(request, "user_profile/user_profile.html", {"context": context})
             
     
 

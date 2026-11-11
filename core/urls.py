@@ -8,5 +8,6 @@ urlpatterns = [
     path("",account_views.home,name="home"),
     path("accounts/", include("accounts.urls")),
     path("user_profile/",include("user_profile.urls")),
-    path('admin_control/',include('admin_control.urls'))
+    path('admin_control/',include('admin_control.urls')),
+    path("peer/",include("peers.urls")),
 ]

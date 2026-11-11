@@ -1,0 +1,104 @@
+{% if page_obj.has_other_pages %}
+
+<nav class="mt-5" aria-label="Page navigation">
+
+    <ul class="pagination justify-content-center flex-wrap gap-1">
+
+        <!-- Previous -->
+        {% if page_obj.has_previous %}
+
+            <li class="page-item">
+
+                <a class="page-link"
+                   href="?page={{ page_obj.previous_page_number }}">
+
+                    <i class="bi bi-chevron-left"></i>
+                    Previous
+
+                </a>
+
+            </li>
+
+        {% else %}
+
+            <li class="page-item disabled">
+                <span class="page-link">
+                    <i class="bi bi-chevron-left"></i>
+                    Previous
+                </span>
+            </li>
+
+        {% endif %}
+
+
+        <!-- Current Page -->
+        <li class="page-item active">
+
+            <span class="page-link">
+                {{ page_obj.number }}
+                of
+                {{ page_obj.paginator.num_pages }}
+            </span>
+
+        </li>
+
+
+        <!-- Next -->
+        {% if page_obj.has_next %}
+
+            <li class="page-item">
+
+                <a class="page-link"
+                   href="?page={{ page_obj.next_page_number }}">
+
+                    Next
+                    <i class="bi bi-chevron-right"></i>
+
+                </a>
+
+            </li>
+
+        {% else %}
+
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Next
+                    <i class="bi bi-chevron-right"></i>
+                </span>
+            </li>
+
+        {% endif %}
+
+    </ul>
+
+</nav>
+
+<style>
+    .pagination .page-link {
+        color: var(--dark-green);
+        border: 1px solid rgba(139, 207, 155, 0.35);
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(12px);
+        border-radius: 9px;
+        margin: 0 3px;
+        transition: 0.3s ease;
+    }
+
+    .pagination .page-link:hover {
+        background: var(--light-green);
+        border-color: var(--primary-green);
+    }
+
+    .pagination .active .page-link {
+        background: var(--dark-green);
+        border-color: var(--dark-green);
+        color: white;
+    }
+
+    .pagination .disabled .page-link {
+        background: rgba(255, 255, 255, 0.35);
+        color: #999;
+    }
+</style>
+
+{% endif %}
