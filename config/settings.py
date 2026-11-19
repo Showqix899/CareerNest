@@ -128,6 +128,13 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
+
+SITE_URL = os.getenv("SITE_URL")        # used to build the link in the email
+SITE_NAME = os.getenv("SITE_NAME")              # shown in the email subject and text
+
+
+PASSWORD_RESET_TIMEOUT = 600  # 10 minutes
+
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 
