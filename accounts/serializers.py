@@ -2,6 +2,8 @@ import re
 from rest_framework import serializers
 from .models import User
 
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 #user serializers 
@@ -83,4 +85,99 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
         
+
+
+
+
+class LoginSerializer(serializers.Serializer):
+    """User login serialzer"""
+    """check login data"""
     
+    email = serializers.EmailField() #client must enter 
+    password = serializers.CharField(
+        write_only=True,
+    )
+    
+    def validate(self, attrs):
+        
+        """check email and password"""
+        email=attrs["email"].lower()
+        password = attrs["password"]
+        
+        user = User.objects.filter(email__iexact=email).first()
+        
+        """checke if user exixts and the password is okey or not"""
+        if user is None or not user.check_password(password):
+            
+            raise serializers.ValidationError("Invalid email or password")
+
+        
+        if not user.is_active:
+            raise serializers.ValidationError(
+                "Account is not acitvated. Please check your email for the activation link"
+            )
+
+        attrs["user"]=user
+        return attrs
+    
+    
+class LoginUserSerializer(serializers.ModelSerializer):
+    
+    """user info send backe after a successfull login"""
+    
+    class Meta:
+        model = User
+        fields = ["id","email","full_name"]
+        
+        
+    
+    
+class LoginResponseSerializer(serializers.Serializer):
+    """
+    Describes what the login response looks like.
+
+    The view does NOT use this to build the response.
+    It only tells Swagger (drf-spectacular) what to show in the docs.
+    """
+
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+    user = LoginUserSerializer()
+    
+    
+class LogoutSerializer(serializers.Serializer):
+    """Checks the refresh token the client sends, then blacklists it."""
+
+    # The only thing the client must send
+    refresh = serializers.CharField()
+
+    def validate_refresh(self, value):
+        """
+        Check that the token is a real, valid refresh token.
+        validate_<field>() runs automatically for the "refresh" field.
+        """
+
+        try:
+            # RefreshToken(value) decodes the token and checks:
+            #  - the signature is correct (not faked)
+            #  - it is not expired
+            #  - it is not already blacklisted
+            token = RefreshToken(value)
+        except TokenError:
+            # Any problem with the token ends up here
+            raise serializers.ValidationError("Invalid or expired refresh token.")
+
+        # Security check: the refresh token must belong to the user who is
+        # logged in right now. Otherwise someone could log out another user.
+        # self.context["request"] is passed in by the view (see PART 2).
+        request_user = self.context["request"].user
+        if str(token["user_id"]) != str(request_user.pk):
+            raise serializers.ValidationError("This token does not belong to you.")
+
+        # Keep the token object so save() can use it
+        self._token = token
+        return value
+
+    def save(self, **kwargs):
+        """Blacklist the token, so it can never be used again."""
+        self._token.blacklist()

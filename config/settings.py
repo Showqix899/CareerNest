@@ -43,11 +43,39 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    #custom apps (features app)
     'accounts',
     'userprofile',
     'admin_panel',
     
+    
+    #third party apps
+    "rest_framework",
+    "drf_spectacular",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+    
+    
 ]
+
+from datetime import timedelta  # put this at the top with the other imports
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
+
+#  the title and description shown at the top of the docs page
+SPECTACULAR_SETTINGS = {
+    "TITLE": "CareerNest API",
+    "DESCRIPTION": "API documentation for user registration and activation.",
+    "VERSION": "1.0.0",
+    # Don't show the raw schema file link inside the Swagger page
+    "SERVE_INCLUDE_SCHEMA": False,
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -78,6 +106,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+REST_FRAMEWORK = {
+    # Tells DRF: protected endpoints read the header
+    # "Authorization: Bearer <access token>" to know who the user is
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
 
 
 
