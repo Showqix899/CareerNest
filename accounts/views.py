@@ -37,7 +37,7 @@ class UserRegisterView(APIView):
     permission_classes = [AllowAny]
     
     @extend_schema(
-        tags=["Authentication"],  # groups endpoints together in Swagger
+        tags=["User Authentication"],  # groups endpoints together in Swagger
         summary="Register a new user",
         description=(
             "Creates a new user account and sends a verification email. "
@@ -122,7 +122,7 @@ class ActivateAccountView(APIView):
     permission_classes = [AllowAny]
     
     @extend_schema(
-        tags=["Authentication"],
+        tags=["User Authentication"],
         summary="Activate account",
         description="Activates the account using the link sent by email.",
         # Describe the two values in the URL
@@ -205,7 +205,7 @@ class LoginView(APIView):
     
 # @extend_schema only changes what Swagger shows. It does not change how the code runs.
     @extend_schema(
-        tags=["Authentication"],
+        tags=["User Authentication"],
         summary="Login",
         description=(
             "Send your email and password. If they are correct and the account "
@@ -254,7 +254,7 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        tags=["Authentication"],
+        tags=["User Authentication"],
         summary="Logout",
         description="Blacklists the refresh token so it can't be used again.",
         request=LogoutSerializer,

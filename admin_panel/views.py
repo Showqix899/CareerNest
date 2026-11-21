@@ -1,9 +1,12 @@
 # views.py
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import viewsets, filters
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
 
 from .models import City,Skill
 from .serializers import CitySerializer,SkillSerializer
+from .is_super_user import IsSuperUser
+
 
 
 @extend_schema_view(
@@ -31,6 +34,8 @@ class CityViewSet(viewsets.ModelViewSet):
     serializer_class = CitySerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["name"]
+    permission_classes=[IsSuperUser]
+    
     
     
 @extend_schema_view(
@@ -47,3 +52,4 @@ class SkillViewSet(viewsets.ModelViewSet):
     serializer_class = SkillSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["name"]
+    permission_classes=[IsSuperUser]

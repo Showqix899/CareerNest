@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'accounts',
     'userprofile',
     'admin_panel',
+    'peer',
     
     
     #third party apps
@@ -62,8 +63,8 @@ INSTALLED_APPS = [
 from datetime import timedelta  # put this at the top with the other imports
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
 }
