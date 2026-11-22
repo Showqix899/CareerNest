@@ -118,8 +118,6 @@ REST_FRAMEWORK = {
 }
 
 
-
-
 #postgresql connection setup
 DATABASES = {
     "default": {

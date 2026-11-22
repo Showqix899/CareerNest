@@ -1,68 +1,66 @@
-# peers/serializers.py
-from django.contrib.auth import get_user_model
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
-
-from . import services
-from .models import Peer, PeerRequest
-
-User = get_user_model()
+from .models import Peer,PeerRequest
+from .models import User
+from django.db.models import Q
 
 
-class PeerUserSerializer(serializers.ModelSerializer):
-    """Minimal public info about a user. Add fields (e.g. profile picture) as needed."""
 
-    class Meta:
-        model = User
-        fields = ["id", "full_name"]
-        read_only_fields = fields
-
-
-class PeerRequestSerializer(serializers.ModelSerializer):
-    """Read-only representation of a request."""
-
-    sender = PeerUserSerializer(read_only=True)
-    receiver = PeerUserSerializer(read_only=True)
-
+#peer request serializer
+class SendPeerRequestSerializer(serializers.Serializer):
+    
+    """input receiver id """
+    
+    receiver = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all()
+    )
+    
+    def validate_receiver(self,value):
+        
+        """check if the user sending itself the request"""
+        if value.pk == self.context["request"].user.pk:
+            
+            raise serializers.ValidationError(
+                "You can not send a request to yourself"
+            )
+            
+            
+        """prevent duplicate request in either direction"""
+        existing_request =PeerRequest.objects.filter(
+            Q(sender=self.context["request"].user.pk,receiver=value) |
+            Q(sender=value,receiver=self.context["request"].user.pk)
+        ).exists()
+        
+        if existing_request:
+            raise serializers.ValidationError(
+                "A peer request already exist from the reciever"
+            )
+            
+            
+        return value
+            
+    def create(self,validated_data):
+        
+        sender = self.context["request"].user
+        receiver = validated_data["receiver"]
+        
+        """creating peer request"""
+        peerRequest = PeerRequest.objects.create(
+            sender=sender,
+            receiver=receiver
+        )
+        
+        return peerRequest
+    
+    
+#peer request serializer
+class PeerRequestSerialzer(serializers.ModelSerializer):
+    
     class Meta:
         model = PeerRequest
-        fields = ["id", "sender", "receiver", "status", "created_at", "responded_at"]
+        fields= ["id","sender","receiver","status","created_at"]
         read_only_fields = fields
-
-
-class SendPeerRequestSerializer(serializers.Serializer):
-    """Input: receiver id. Delegates all rules to services.send_request."""
-
-    receiver = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.filter(is_active=True)
-    )
-
-    def validate_receiver(self, value):
-        if value.pk == self.context["request"].user.pk:
-            raise serializers.ValidationError("You cannot send a request to yourself.")
-        return value
-
-    def create(self, validated_data):
-        return services.send_request(
-            self.context["request"].user, validated_data["receiver"]
-        )
-
-    def to_representation(self, instance):
-        return PeerRequestSerializer(instance, context=self.context).data
-
-
-class PeerSerializer(serializers.ModelSerializer):
-    """Shows the *other* user in the pair, relative to the requesting user."""
-
-    peer = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Peer
-        fields = ["id", "peer", "created_at"]
-        read_only_fields = fields
-
-    @extend_schema_field(PeerUserSerializer)
-    def get_peer(self, obj):
-        me = self.context["request"].user
-        other = obj.user_b if obj.user_a_id == me.pk else obj.user_a
-        return PeerUserSerializer(other, context=self.context).data
+    
+        
+        
+        
+        

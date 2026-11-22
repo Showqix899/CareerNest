@@ -31,6 +31,7 @@ urlpatterns = [
     path("health",health,name="health"),
     path("api/user/",include("accounts.urls")),
     path("api/admin/",include("admin_panel.urls")),
+    path("api/peer/",include("peer.urls")),
     
     
      # 1) The raw schema file (JSON/YAML). Swagger and Redoc read from this.

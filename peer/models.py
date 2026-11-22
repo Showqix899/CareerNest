@@ -1,84 +1,58 @@
-# peers/models.py
-import uuid
-from django.conf import settings
+from accounts.models import User
 from django.db import models
-from django.db.models import F, Q
-
-User = settings.AUTH_USER_MODEL
+import uuid
 
 
+
+#peer request 
 class PeerRequest(models.Model):
-    class Status(models.TextChoices):
-        PENDING = "PENDING", "Pending"
-        ACCEPTED = "ACCEPTED", "Accepted"
-        REJECTED = "REJECTED", "Rejected"
-        CANCELLED = "CANCELLED", "Cancelled"
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # sender index is covered by the unique constraint below
-    sender = models.ForeignKey(
-        User, on_delete=models.CASCADE,
-        related_name="sent_peer_requests", db_index=False,
-    )
-    # receiver index is covered by the composite index below
-    receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE,
-        related_name="received_peer_requests", db_index=False,
-    )
+    
+    class STATUS:
+        
+        pending = "pending", "Pending"
+        accepted = "accepted", "Accepted"
+        reject = "reject", "Reject"
+        
+        
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_peer_requests")
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_peer_requests")
     status = models.CharField(
-        max_length=10, choices=Status.choices, default=Status.PENDING
+        max_length=20,
+        choices=[STATUS.pending, STATUS.accepted, STATUS.reject],
+        default=STATUS.pending[0],
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    responded_at = models.DateTimeField(null=True, blank=True)
-
+    
+    #seting up constraints and indexes
     class Meta:
+        
         constraints = [
-            models.CheckConstraint(
-                condition=~Q(sender=F("receiver")),
-                name="prevent_self_peer_request",
-            ),
             models.UniqueConstraint(
-                fields=["sender", "receiver"],
-                name="unique_directional_peer_request",
-            ),
+                fields = ["sender","receiver"],
+                name="unique_sender_receiver"
+            )
         ]
+
         indexes = [
-            models.Index(
-                fields=["receiver", "-created_at"],
-                condition=Q(status="PENDING"),
-                name="peer_incoming_pending_idx",
-            ),
-            models.Index(
-                fields=["receiver", "status"],
-                name="peer_receiver_status_idx",
-            ),
+            models.Index(fields=["receiver","status"]),
+            models.Index(fields=["sender","status"])
         ]
-
-
+    
+    def __str__(self):
+        return f"{self.sender.full_name} sent peer request to {self.receiver.full_name}"
+    
+    
+    
+#peers 
 class Peer(models.Model):
-    """Accepted connection. One row per pair, stored in canonical order (user_a < user_b)."""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user_a = models.ForeignKey(
-        User, on_delete=models.CASCADE,
-        related_name="peers_as_a", db_index=False,
-    )
-    user_b = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="peers_as_b",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="peers_as_sender")
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="peers_as_receiver")
+    responded_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        constraints = [
-            models.CheckConstraint(
-                condition=Q(user_a__lt=F("user_b")),
-                name="peer_canonical_order",
-            ),
-            models.UniqueConstraint(
-                fields=["user_a", "user_b"], name="unique_peer_pair"
-            ),
-        ]
-
-    @staticmethod
-    def ordered(u1, u2):
-        return (u1, u2) if u1.pk < u2.pk else (u2, u1)
+    
+    def __str__(self):
+        return f"{self.sender.full_name} is connected to {self.receiver.full_name}"
