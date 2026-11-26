@@ -1,6 +1,6 @@
 
 from django.urls import path
-from .views import SendPeerRequestView,ListPeerRequestView
+from .views import SendPeerRequestView,ListPeerRequestView,AcceptingPeerRequest,RjectPeerRequest
 
 urlpatterns = [
     path(
@@ -12,5 +12,15 @@ urlpatterns = [
         "peer-request-list",
         ListPeerRequestView.as_view(),
         name="peer-request-list"
-    )
+    ),
+    path(
+        "accepte/<uuid:id>/",
+        AcceptingPeerRequest.as_view(),
+        name="accepte"
+    ),
+    path(
+        "reject/<uuid:id>/",
+        RjectPeerRequest.as_view(),
+        name="reject"
+    ),
 ]

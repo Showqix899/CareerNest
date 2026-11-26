@@ -7,7 +7,7 @@ import uuid
 #peer request 
 class PeerRequest(models.Model):
     
-    class STATUS:
+    class STATUS(models.TextChoices):
         
         pending = "pending", "Pending"
         accepted = "accepted", "Accepted"
@@ -19,8 +19,8 @@ class PeerRequest(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_peer_requests")
     status = models.CharField(
         max_length=20,
-        choices=[STATUS.pending, STATUS.accepted, STATUS.reject],
-        default=STATUS.pending[0],
+        choices=STATUS.choices,
+        default=STATUS.pending,
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
