@@ -65,5 +65,11 @@ class PeerRequestSerialzer(serializers.ModelSerializer):
     
         
         
+#peer serializer 
+class PeerSerializer(serializers.ModelSerializer):
+    
+    class Meta:
         
-        
+        model = Peer
+        fields = ["id","sender","receiver","responded_at"]
+        read_only_fields = fields
